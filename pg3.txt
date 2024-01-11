@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def euclidean_distance(point1, point2):
+    return np.sqrt(np.sum((point1 - point2) ** 2))
+
+def kmeans(X, k, initial_centers, max_iterations=3):
+    centers_history = [initial_centers.copy()]
+    
+    for iteration in range(max_iterations):
+        # Assign each data point to the nearest cluster center
+        clusters = [[] for _ in range(k)]
+        for point in X:
+            distances = [euclidean_distance(point, center) for center in centers_history[-1]]
+            cluster_index = np.argmin(distances)
+            clusters[cluster_index].append(point)
+        
+        # Update cluster centers
+        new_centers = [np.mean(cluster, axis=0) if cluster else centers_history[-1][i] for i, cluster in enumerate(clusters)]
+        centers_history.append(new_centers)
+        
+        # Print data points and cluster centroids for each cluster
+        print(f"Iteration {iteration + 1} - Data points assigned to each cluster:")
+        for i, cluster in enumerate(clusters):
+            print(f"Cluster {i + 1}: {', '.join(map(str, cluster))}")
+        print(f"Centroids: {', '.join(map(str, new_centers))}")
+        print()
+
+    return centers_history, clusters
+
+# Define the data points
+X = np.array([[5.9, 3.2], [4.6, 2.9], [6.2, 2.8], [4.7, 3.2], [5.5, 4.2], [5.0, 3.0], [4.9, 3.1], [6.7, 3.1], [5.1, 3.8], [6.0, 3.0]])
+
+# Initialize the cluster centers
+initial_centers = np.array([[6.2, 3.2], [6.6, 3.7], [6.5, 3.0]])
+
+# Set the number of clusters (k) and run k-means
+k = 3
+centers_history, final_clusters = kmeans(X, k, initial_centers)
+
+# Convert final_centers to a NumPy array
+final_centers = np.array(centers_history[-1])
+
+# Scatter plot the final clustering result
+plt.figure(figsize=(8, 6))
+for i, cluster in enumerate(final_clusters):
+    cluster_points = np.array(cluster)
+    plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label=f'Cluster {i + 1}')
+
+plt.scatter(final_centers[:, 0], final_centers[:, 1], marker='X', color='black', label='Centroids', s=100)
+plt.title('Final Clustering Result')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.show()
